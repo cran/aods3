@@ -26,10 +26,16 @@ For the BB model, data have the form \{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m
 For the NB model, data can be of two forms. When modeling \dQuote{simple counts}, data have the form \{\eqn{m_1, m_2, ..., m_N}\}, where \eqn{m_i} is the number of occurences of the event under study. When modeling rates (e.g. hazard rates), data have the same form as for the BB model, where \eqn{n_i} is the denominator of the rate for cluster \eqn{i} (considered as an \dQuote{offset}, i.e. a constant known value) and \eqn{m_i} the number of occurences of the event. For both forms of data, the response is the count \eqn{y = m}. }
 
 \usage{
-  aodml(formula, data,
-  family = c("bb", "nb"), link = c("logit", "cloglog", "probit"), 
-	phi.formula = ~ 1, phi.scale = c("identity", "log", "exp", "inverse"), phi.ini = NULL,
-	fixpar = list(), hessian = TRUE, control = list(maxit = 3000), ...)
+  aodml(formula,
+        data,
+        family = c("bb", "nb"),
+        link = c("logit", "cloglog", "probit"), 
+        phi.formula = ~ 1,
+        phi.scale = c("identity", "log", "exp", "inverse"),
+        phi.ini = NULL,
+        fixpar = list(),
+        hessian = TRUE,
+        control = list(maxit = 3000), ...)
   
   \method{print}{aodml}(x, ...)
   \method{summary}{aodml}(object, ...)
@@ -183,7 +189,7 @@ cbind(
   fitted(fm1, what = "phi")
 )
 predict(fm1, type = "response", se.fit = TRUE)
-newdat <- data.frame(n = rep(1, 2), m = rep(1, 2), seed = c("O73", "O75"))
+newdat <- data.frame(seed = c("O73", "O75"))
 predict(fm1, type = "response", se.fit = TRUE, newdata = newdat)
 
 # model comparisons with anova (deviance tests)
@@ -257,7 +263,7 @@ cbind(
   fitted(fm1, what = "phi")
 )
 predict(fm1, type = "response", se.fit = TRUE)
-newdat <- data.frame(m = rep(1, 2), dose = c(20, 40))
+newdat <- data.frame(dose = c(20, 40))
 predict(fm1, type = "response", se.fit = TRUE, newdata = newdat)
 
 # deviance and chi2 tests of the "log(dose + 10) + dose" factors

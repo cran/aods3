@@ -22,8 +22,13 @@ For binomial-type models, data have the form \{\eqn{(n_1, m_1), (n_2, m_2), ...,
 For Poisson-type models, data can be of two forms. When modeling \dQuote{simple counts}, data have the form \{\eqn{m_1, m_2, ..., m_N}\}, where \eqn{m_i} is the number of occurences of the event under study. When modeling rates (e.g. hazard rates), data have the same form as for the BB model, where \eqn{n_i} is the denominator of the rate for cluster \eqn{i} (considered as an \dQuote{offset}, i.e. a constant known value) and \eqn{m_i} the number of occurences of the event. For both forms of data, the response is the count \eqn{y = m}. }
 
 \usage{
-  aodql(formula, data, family = c("qbin", "qpois"), link = c("logit", "cloglog", "probit"),
-      method = c("chisq", "dev"), phi = NULL, tol = 1e-5, ...)
+  aodql(formula,
+        data,
+        family = c("qbin", "qpois"),
+        link = c("logit", "cloglog", "probit"),
+        method = c("chisq", "dev"),
+        phi = NULL,
+        tol = 1e-5, ...)
         
   \method{anova}{aodql}(object, ...)
   \method{coef}{aodql}(object, ...)

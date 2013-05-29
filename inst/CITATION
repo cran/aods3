@@ -4,11 +4,10 @@ vers <- paste("aods3 package version", meta$Version)
 citEntry(entry = "Manual",
          title = "aods3: analysis of overdispersed data using S3 methods",
          author = personList(as.person("Matthieu Lesnoff"),
-                             as.person("Renaud Lancelot"),
-                             as.person("Samir Messad")),
+                             as.person("Renaud Lancelot")),
          year = year,
          note = vers,
-         textVersion = paste0("Lesnoff M., Lancelot R., Messad S. ",
+         textVersion = paste0("Lesnoff M., Lancelot R.",
                               "(", year, ").",
                               " aods3: analysis of overdispersed data using S3 methods. ",
                               vers, "."))
