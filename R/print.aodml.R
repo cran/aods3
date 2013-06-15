@@ -1,4 +1,5 @@
 print.aodml <- function(x, ...)
+  
   print(
 		list(
 			call = x$call,
@@ -7,4 +8,4 @@ print.aodml <- function(x, ...)
   		varparam = x$varparam, logL = x$logL,
   		iterations = x$iterations, code = x$code
 			)
-		)
+    )

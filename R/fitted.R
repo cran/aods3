@@ -4,19 +4,19 @@ fitted.aodml <- function(object, ..., what = c("mu", "nu", "eta", "phi")) {
   dat <- object$dat
 	mu.f <- object$formula
 	phi.f <- object$phi.formula
-	modmatrix.b <- object$modmatrix.b
-	modmatrix.phi <- object$modmatrix.phi
+	X.b <- object$X.b
+	X.phi <- object$X.phi
   offset <- object$offset
 	b <- object$b
 	phi <- object$phi
 	
 	# fitted mu
-	nu <- as.vector(modmatrix.b %*% b)
+	nu <- as.vector(X.b %*% b)
   eta <- if(is.null(offset)) nu else nu + offset
 	mu <- invlink(eta, type = object$link)
 	
 	# fitted phi
-	zphi <- as.vector(modmatrix.phi %*% phi)
+	zphi <- as.vector(X.phi %*% phi)
 
 	switch(what, mu = mu, nu = nu, eta = eta, phi = zphi)
 	}

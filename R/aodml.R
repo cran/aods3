@@ -1,11 +1,20 @@
-aodml <- function(formula, data,
-	family = c("bb", "nb"), link = c("logit", "cloglog", "probit"), 
-	phi.formula = ~ 1, phi.scale = c("identity", "log", "exp", "inverse"), phi.ini = NULL,
-	fixpar = list(), hessian = TRUE, control = list(maxit = 3000), ...) {
+aodml <- function(formula,
+  data,
+	family = c("bb", "nb"),
+  link = c("logit", "cloglog", "probit"), 
+	phi.formula = ~ 1,
+  phi.scale = c("identity", "log", "inverse"),
+  phi.start = NULL,
+  fixpar = list(),
+  hessian = TRUE,
+  method = c("BFGS", "Nelder-Mead", "CG", "SANN"),
+  control = list(maxit = 3000),
+  ...) {
 	
-	call <- match.call(expand.dots = FALSE)
+  call <- match.call(expand.dots = FALSE)
 	fam <- match.arg(family)
 	phi.scale <- match.arg(phi.scale)
+  method <- match.arg(method)
 
 	mu.f <- formula
 	phi.f <- phi.formula
@@ -16,113 +25,96 @@ aodml <- function(formula, data,
 	mf <- model.frame(formula = mu.f, data = dat)
 	resp <- model.response(mf)
 	if(fam == "bb") {
-		fam0 <- eval(parse(text = paste("binomial(link =", link,")")))
-		link <- match.arg(link)
+  	link <- match.arg(link)
+		fam.glm <- eval(parse(text = paste("binomial(link =", link,")")))
 		m <- resp[, 1]
 		n <- rowSums(resp)
 		y <- m / n
 	}
 	if(fam == "nb") {
-		fam0 <- "poisson"
+		fam.glm <- "poisson"
 		link <- "log"
 		y <- as.vector(resp)
 	}
   offset <- model.offset(mf)
 	
-	fam0 <- ifelse(fam == "nb", "poisson", "binomial")
-  fm <- glm(formula = mu.f, family = fam0, data = dat)
-  
 	# model matrices
-  modmatrix.b <- model.matrix(object = mu.f, data = dat)
-  modmatrix.phi <- model.matrix(object = phi.f, data = dat)
-  nbb <- ncol(modmatrix.b)
-	nbphi <- ncol(modmatrix.phi)
+  X.b <- model.matrix(object = mu.f, data = dat)
+  X.phi <- model.matrix(object = phi.f, data = dat)
+  nbb <- ncol(X.b)
+	nbphi <- ncol(X.phi)
 	# total number of parameters (including the eventual ones that are set as constant)
 	nbpar <- nbb + nbphi
 	
 	# Parameters set as constant (fixpar)
 	# Argument fixpar must be a list with two components:
 	# the rank(s) and the value(s) of the parameters that are set as constant 
-	idpar <- idest <- 1:nbpar
+	id.par <- id.est <- 1:nbpar
 	fixp <- FALSE
-	idfix <- valfix <- NULL
+	id.fix <- theta.fix <- NULL
 	if(!is.null(unlist(fixpar))) {
 		fixp <- TRUE
-		idfix <- fixpar[[1]]
-		valfix <- fixpar[[2]]
-	  idest <- idpar[-idfix]
+		id.fix <- fixpar[[1]]
+		theta.fix <- fixpar[[2]]
+	  id.est <- id.par[-id.fix]
 	}
 
-	# initial parameter values
-  b <- fm$coefficients
-	if(is.null(phi.ini)) {
+	# starting values of the parameters
+  fm <- glm(formula = mu.f, family = fam.glm, data = dat)
+	if(is.null(phi.start)) {
 		z <- 0.1
-		val <- switch(phi.scale, "identity" = z, "log" = log(z), "exp" = exp(z), "inverse" = 1 / z)
+		val <- switch(phi.scale, "identity" = z, "log" = log(z), "inverse" = 1 / z)
 	} else
-		val <- phi.ini
-  phi.ini <- rep(val, nbphi)
-	param.ini <- c(b, phi.ini)
+		val <- phi.start
+  phi.start <- rep(val, nbphi)
+	param.start <- c(coef(fm), phi.start)
 
-	# -logL
-  
-  loglik.bb.k <- function(m, n, mu, k) {
+	# logL  
+  dbetabin <- function(m, n, mu, k, log = FALSE) {
     a <- (k - 1) * mu
     b <- (k - 1) * (1 - mu)
-    lbeta(a + m, b + n - m) - lbeta(a, b) + lchoose(n, m)
-  }
+    if(log)
+      lbeta(a + m, b + n - m) - lbeta(a, b) + lchoose(n, m)
+    }
   
-  loglik.nb.k <- function(y, mu, k)
-    y * log(mu / (mu + k)) + k * log(k / (mu + k)) + lgamma(k + y) - lgamma(k) - lfactorial(y)
-  
-  minuslogL <- function(param0){
+  m.logL <- function(theta){
   	
   	param <- vector(length = nbpar)
-  	param[idfix] <- valfix
-  	param[idest] <- param0
+  	param[id.fix] <- theta.fix
+  	param[id.est] <- theta
   	
   	b <- param[1:nbb]
-    nu <- as.vector(modmatrix.b %*% b)
+    nu <- as.vector(X.b %*% b)
     mu <- if(is.null(offset)) invlink(nu, type = link) else invlink(nu + offset, type = link)
-    zphi <- as.vector(modmatrix.phi %*% param[(nbb + 1):(nbb + nbphi)])
+    vecphi <- as.vector(X.phi %*% param[(nbb + 1):(nbb + nbphi)])
     
-  	# If some components of "zphi" are set
-  	# to 0 (if "identity"), -Inf (if "log"), 1 (if "exp") or Inf (if "inverse") in fixpar,
-  	# the distribution is set to Poisson and k (=1/phi) is not used
-    
-    k <- switch(phi.scale, identity = 1 / zphi, log = 1 / exp(zphi), exp = 1 / log(zphi), inverse = zphi)
-    cnd <- k == Inf
+    k <- switch(phi.scale, identity = 1 / vecphi, log = 1 / exp(vecphi), inverse = vecphi)
 
     l <- vector(length = length(mu))
     
-    if(fam == "bb") {
-      l[cnd] <- dbinom(x = m[cnd], size = n[cnd], prob = mu[cnd], log = TRUE)
-      l[!cnd] <- loglik.bb.k(m[!cnd], n[!cnd], mu[!cnd], k[!cnd])
-    }
+    if(fam == "bb")
+      l <- dbetabin(m = m, n = n, mu = mu, k = k, log = TRUE)
     
-    if(fam == "nb") {
-      l[cnd] <- dpois(x = y[cnd], lambda = mu[cnd], log = TRUE)
-      l[!cnd] <- loglik.nb.k(y[!cnd], mu[!cnd], k[!cnd])
-  	}
+    if(fam == "nb")
+      l <- dnbinom(x = y, mu = mu, size = k, log = TRUE)
       
-    fn <- sum(l)
-    if(!is.finite(fn)) fn <- -1e20
-    
-    -fn
+    -sum(l)
     
     }
 
 	# fit
-  res <- optim(par = param.ini[idest], fn = minuslogL, hessian = hessian, control = control, ...)
+  res <- optim(par = param.start[id.est], fn = m.logL, hessian = hessian, 
+    method = method, control = control, ...)
   
 	## Results
   
 	#param
-	param0 <- res$par
+	theta <- res$par
   param <- vector(length = nbpar)
-  param[idfix] <- valfix
-  param[idest] <- param0
-  namb <- colnames(modmatrix.b)
-  namphi <- paste("phi", colnames(modmatrix.phi), sep = ".")
+  param[id.fix] <- theta.fix
+  param[id.est] <- theta
+  namb <- colnames(X.b)
+  namphi <- paste("phi", colnames(X.phi), sep = ".")
   names(param) <- c(namb, namphi)
   
   b <- param[seq(along = namb)]
@@ -136,32 +128,27 @@ aodml <- function(formula, data,
     H0 <- res$hessian
     singular.H0 <- is.singular(H0)
     if(!singular.H0)
-			varparam[idest, idest] <- qr.solve(H0)
+			varparam[id.est, id.est] <- qr.solve(H0)
 		else
 			warning("The hessian matrix was singular.\n")
 	}
   dimnames(varparam)[[1]] <- dimnames(varparam)[[2]] <- names(param)
   
   # log-likelihood contributions
-  nu <- as.vector(modmatrix.b %*% b)
+  nu <- as.vector(X.b %*% b)
   mu <- if(is.null(offset)) invlink(nu, type = link) else invlink(nu + offset, type = link)
-  zphi <- as.vector(modmatrix.phi %*% phi)
-  k <- switch(phi.scale, identity = 1 / zphi, log = 1 / exp(zphi), exp = 1 / log(zphi), inverse = zphi)
-  cnd <- k == Inf
+  vecphi <- as.vector(X.phi %*% phi)
+  k <- switch(phi.scale, identity = 1 / vecphi, log = 1 / exp(vecphi), inverse = vecphi)
   l <- lmax <- vector(length = length(mu))
 
   if(fam == "bb") {
-    l[cnd] <- dbinom(x = m[cnd], size = n[cnd], prob = mu[cnd], log = TRUE)
-    l[!cnd] <- loglik.bb.k(m[!cnd], n[!cnd], mu[!cnd], k[!cnd])
-    lmax[cnd] <- dbinom(x = m[cnd], size = n[cnd], prob = y[cnd], log = TRUE)
-    lmax[!cnd] <- loglik.bb.k(m[!cnd], n[!cnd], y[!cnd], k[!cnd])
+    l <- dbetabin(m = m, n = n, mu = mu, k = k, log = TRUE)
+    lmax <- dbetabin(m = m, n = n, mu = y, k = k, log = TRUE)
   }
   
   if(fam == "nb") {
-    l[cnd] <- dpois(x = y[cnd], lambda = mu[cnd], log = TRUE)
-    l[!cnd] <- loglik.nb.k(y[!cnd], mu[!cnd], k[!cnd])
-    lmax[cnd] <- dpois(x = y[cnd], lambda = y[cnd], log = TRUE)
-    lmax[!cnd] <- loglik.nb.k(y[!cnd], y[!cnd], k[!cnd])
+    l <- dnbinom(x = y, mu = mu, size = k, log = TRUE)
+    lmax <- dnbinom(x = y, mu = y, size = k, log = TRUE)
     }  
   
   l[is.na(l)] <- 0
@@ -169,21 +156,18 @@ aodml <- function(formula, data,
 	
   # other results
 	# if fixpar is not null, df.model is lower than nbpar
-	df.model <- length(param0)
+	df.model <- length(theta)
   logL <- -res$value
   df.residual <- length(y) - df.model
-  iterations <- res$counts[1]
+  iterations <- res$counts
   code <- res$convergence
   msg <- if(!is.null(res$message)) res$message else character(0)
-	
-  #dev <- -2 * (logL - logLmax)
-	#aic <- -2 * logL + 2 * df.model 
-	
+		
   structure(
   	list(
   		call = call, family = fam, link = link, dat = dat,
   		formula = mu.f, phi.formula = phi.f, phi.scale = phi.scale,
-  		modmatrix.b = modmatrix.b, modmatrix.phi = modmatrix.phi,
+  		X.b = X.b, X.phi = X.phi,
   		resp = resp, offset = offset,
   		param = param, b = b, phi = phi,
     	varparam = varparam,

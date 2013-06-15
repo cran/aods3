@@ -1,4 +1,5 @@
 wald.test <- function(b, varb, Terms = NULL, L = NULL, H0 = NULL, df = NULL, verbose = FALSE, ...){
+  
 	# cross checks between Terms and L
   if(is.null(Terms) & is.null(L))
     stop("One of the arguments Terms or L must be used.")
@@ -45,4 +46,5 @@ wald.test <- function(b, varb, Terms = NULL, L = NULL, H0 = NULL, df = NULL, ver
 	structure(list(varb = varb, b = b, Terms = Terms, H0 = H0, L = L,
                  result = res, verbose = verbose, df = df),
             class = "wald.test")
-  }
+
+}

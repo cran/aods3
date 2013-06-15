@@ -1,4 +1,5 @@
 iccbin <- function(n, m, method = c("A", "B", "C"), nAGQ = 1, M = 1000) {
+  
   method <- match.arg(method)
   dat <- data.frame(n = n, m = m)	
   databin <- splitbin(cbind(m, n - m) ~ 1, dat)$tab
@@ -45,4 +46,5 @@ iccbin <- function(n, m, method = c("A", "B", "C"), nAGQ = 1, M = 1000) {
   ## output
   features <- c(method = method, nAGQ = nAGQ, M = M)
   structure(list(features = features, rho = rho), class = "iccbin")
-  }
+  
+}

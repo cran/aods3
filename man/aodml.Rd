@@ -23,19 +23,21 @@
 
 For the BB model, data have the form \{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)}\}, where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{successes}, and \eqn{N} the number of clusters. The response is the proportion \eqn{y = m/n.} 
 
-For the NB model, data can be of two forms. When modeling \dQuote{simple counts}, data have the form \{\eqn{m_1, m_2, ..., m_N}\}, where \eqn{m_i} is the number of occurences of the event under study. When modeling rates (e.g. hazard rates), data have the same form as for the BB model, where \eqn{n_i} is the denominator of the rate for cluster \eqn{i} (considered as an \dQuote{offset}, i.e. a constant known value) and \eqn{m_i} the number of occurences of the event. For both forms of data, the response is the count \eqn{y = m}. }
+For the NB model, data can be of two types. When modeling simple counts, data have the form \{\eqn{m_1, m_2, ..., m_N}\}, where \eqn{m_i} is the number of occurences of the event under study. When modeling rates (e.g. hazard rates), data have the same form as for the BB model, where \eqn{n_i} is the denominator of the rate for cluster \eqn{i} (considered as an \dQuote{offset}, i.e. a constant known value) and \eqn{m_i} the number of occurences of the event. For both types of data, the response is the count \eqn{y = m}. }
 
 \usage{
   aodml(formula,
-        data,
-        family = c("bb", "nb"),
-        link = c("logit", "cloglog", "probit"), 
-        phi.formula = ~ 1,
-        phi.scale = c("identity", "log", "exp", "inverse"),
-        phi.ini = NULL,
-        fixpar = list(),
-        hessian = TRUE,
-        control = list(maxit = 3000), ...)
+  data,
+  family = c("bb", "nb"),
+  link = c("logit", "cloglog", "probit"), 
+	phi.formula = ~ 1,
+  phi.scale = c("identity", "log", "inverse"),
+  phi.start = NULL,
+  fixpar = list(),
+  hessian = TRUE,
+  method = c("BFGS", "Nelder-Mead", "CG", "SANN"),
+  control = list(maxit = 3000),
+  ...)
   
   \method{print}{aodml}(x, ...)
   \method{summary}{aodml}(object, ...)
@@ -66,13 +68,15 @@ For the NB model, data can be of two forms. When modeling \dQuote{simple counts}
   
   \item{phi.scale}{Scale on which \eqn{\Phi} is estimated (see details): \dQuote{identity} (default), \dQuote{log} or \dQuote{inverse}.}
 
-  \item{phi.ini}{Optional initial values for \eqn{\Phi}. Default to 0.1.}
+  \item{phi.start}{Optional starting values for \eqn{\Phi}. Default to 0.1.}
   
   \item{fixpar}{An optional list of 2 vectors of same length (\eqn{>=1}) to set some parameters as constant in the model. The first vector indicates which parameters are set as constant (i.e., not optimized) in the global parameter vector \eqn{(b, \Phi)}. The second vector indicates the corresponding values. For instance, \code{fixpar = list(c(4, 5), c(0, 0.1))} means that the 4th and 5th components of vector \eqn{(b, \Phi)} are set to 0 and 0.1. Argument \code{fixpar} can be usefull, for instance, to calculate profiled log-likehoods.}
 
   \item{hessian}{A logical (default to \code{TRUE}). If \code{FALSE}, the hessian and the variances-covariances matrices of the parameters are not calculated.}
+
+  \item{method}{Define the method used for the optimization (see \code{\link{optim}}).}
   
-  \item{control}{A list to control the optimization parameters. See \code{\link{optim}}. By default, the maximum number of iterations is set to 3000.}
+  \item{control}{A list to control the optimization parameters. See \code{\link{optim}}. By default, the maximum number of iterations is set to 10000.}
   
   \item{object}{An object of class \code{aodml}}
 
@@ -86,7 +90,7 @@ For the NB model, data can be of two forms. When modeling \dQuote{simple counts}
   
   \item{k}{Numeric scalar for the penalty parameter used to compute the information criterion. The default value (\eqn{k = 2}) is the regular AIC = -2 * logLik + 2 * \eqn{p}, where \eqn{p} is the number of model coefficients. NB: for AICc, \eqn{k} is set to 2, and AICc = AIC + 2 * \eqn{p} * \eqn{(p + 1)} / \eqn{(n - p - 1)}, with \eqn{n} the number of observations.}
   
-  \item{se.fit}{Logical scalar indicating whether standard errors should be computed for the predicted valuer. Default to \code{FALSE}.}
+  \item{se.fit}{Logical scalar indicating whether standard errors should be computed for the predicted values. Default to \code{FALSE}.}
   
   \item{newdata}{A \code{data.frame} containing the explanatory variables - and possibly the offset - for the values of which predictions are to be made.}
   }
@@ -98,7 +102,7 @@ For the NB model, data can be of two forms. When modeling \dQuote{simple counts}
 
 For a given cluster \eqn{(n, m)}, the model is
 
-  \deqn{m | \lambda,n \sim Binomial(n, \lambda)}
+  \deqn{m | \lambda,n ~ Binomial(n, \lambda)}
 
 where \eqn{\lambda} follows a Beta distribution \eqn{Beta(a_1, a_2)}. Noting \eqn{B} the beta function, the marginal (beta-binomial) distribution of \eqn{m} is
 
@@ -118,7 +122,7 @@ The response in \code{aodml} is \eqn{y = m/n}. The mean is \eqn{E[y] = \mu}, def
 
 For a given cluster \eqn{(m)}, the model is
 
-  \deqn{y | \lambda \sim Poisson(\lambda)}
+  \deqn{y | \lambda ~ Poisson(\lambda)}
 
 where \eqn{\lambda} follows a Gamma distribution of mean \eqn{\mu} and shape \eqn{k} (\eqn{Var[\lambda] = \mu^2 / k}). Noting \eqn{G} the gamma function, the marginal (negative binomial) distribution of \eqn{m} is
 
@@ -136,19 +140,19 @@ The response in \code{aodml} is \eqn{y = m}. The mean is \eqn{E[y] = \mu}, defin
 
 For a given cluster \eqn{(n, m)}, the model is
 
-  \deqn{m | \lambda,n \sim Poisson(\lambda)}
+  \deqn{m | \lambda,n ~ Poisson(\lambda)}
 
 The marginal (negative binomial) distribution \eqn{P(m|n)} is the same as for the case with no offset (\eqn{= P(m)}). The response in \code{aodml} is \eqn{y = m}. The mean is \eqn{E[y] = \mu}, defined such as \eqn{\mu = exp(X * b + log(n)) =  exp(\nu + log(n)) = exp(\eta)}, where \eqn{log(n)} is the offset. The variance is \eqn{Var[y] = \mu + \Phi * \mu^2}.\cr
 
 \bold{Other details}\cr
 
-Argument \code{phi.scale} of function \code{aodml} enables to estimate the over-dispersion parameter under different scales. If \code{phi.scale = "identity"} (Default), the function estimates \eqn{\Phi}. If \code{phi.scale = "log"}, the function estimates \eqn{log(\Phi)}. If \code{phi.scale = "exp"}, the function estimates \eqn{exp(\Phi)}. If \code{phi.scale = "inverse"}, the function estimates \eqn{1/\Phi}.\cr
+Argument \code{phi.scale} of function \code{aodml} enables to estimate the over-dispersion parameter under different scales. If \code{phi.scale = "identity"} (Default), the function estimates \eqn{\Phi}. If \code{phi.scale = "log"}, the function estimates \eqn{log(\Phi)}. If \code{phi.scale = "inverse"}, the function estimates \eqn{1/\Phi}.\cr
 
-The full parameter vector returned by \code{aodml}, say \code{param}, is equal to \eqn{(b, \Phi)}. This vector is estimated by maximizing the log-likelihood of the marginal model using function \code{optim}. The estimated variances-covariances matrix of \code{param} is calculated by the inverse of the observed hessian matrix returned by \code{optim}) and is referred to as \code{varparam}.
+The full parameter vector returned by \code{aodml}, say \code{param}, is equal to \eqn{(b, \Phi)}. This vector is estimated by maximizing the log-likelihood of the marginal model using function \code{optim}. The estimated variances-covariances matrix of \code{param} is calculated by the inverse of the observed hessian matrix returned by \code{optim}, and is referred to as \code{varparam}.
 
 }
 
-\value{An object of class \code{aodml}, printed and summarized by various functions. Function \code{deviance.aodml} returns the value \code{-2 * (logL - logL_max)}. The deviance used in function \code{AIC.aodml} to calculate AIC and AICc is \code{-2 * logL}.}
+\value{An object of class \code{aodml}, printed and summarized by various functions. Function \code{deviance.aodml} returns the value \code{-2 * (logL - logL_max)}. The \dQuote{deviance} used in function \code{AIC.aodml} to calculate AIC and AICc is \code{-2 * logL}.}
 
 \references{
   Crowder, M.J., 1978. \emph{Beta-binomial anova for proportions}. Appl. Statist. 27, 34-37.\cr
@@ -192,20 +196,11 @@ predict(fm1, type = "response", se.fit = TRUE)
 newdat <- data.frame(seed = c("O73", "O75"))
 predict(fm1, type = "response", se.fit = TRUE, newdata = newdat)
 
-# model comparisons with anova (deviance tests)
-fm0 <- aodml(cbind(m, n - m) ~ 1, data = orob2, family = "bb")
-fm2 <- aodml(cbind(m, n - m) ~ seed + root, data = orob2, family = "bb")
-fm3 <- aodml(cbind(m, n - m) ~ seed * root, data = orob2, family = "bb")
-anova(fm0, fm1, fm2, fm3)
-
-# chi2 tests of the seed factor in fm1
-wald.test(b = coef(fm1), varb = vcov(fm1), Terms = 2)
-
 # model with heterogeneity in phi
-fm4 <- aodml(cbind(m, n - m) ~ seed * root, data = orob2,
+fm <- aodml(cbind(m, n - m) ~ seed, data = orob2,
   family = "bb", phi.formula = ~ seed)
-summary(fm4)
-AIC(fm3, fm4)
+summary(fm)
+AIC(fm1, fm)
 
 # various phi scales
 fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb")
@@ -218,7 +213,7 @@ fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb", phi.scale = "in
 fm$phi
 fm$phi.scale
 
-# Models with coefficient(s) set as constant
+### Models with coefficient(s) set as constant
 
 # model with 1 phi coefficient, set as constant "0.02"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
@@ -226,24 +221,44 @@ fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
 fm$param
 fm$varparam
 
-# model with 2 phi coefficients, with the first set as constant "0"
+# model with 2 phi coefficients, with the first set as constant ~ "0"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
-  family = "bb", phi.formula = ~ seed, fixpar = list(5, 0))
+  family = "bb", phi.formula = ~ seed, fixpar = list(5, 1e-15))
 fm$param
 fm$varparam
 
-# model with 2 phi coefficients, with the first set as constant "0",
+# model with 2 phi coefficients, with the first set as constant ~ "0",
 # and the mu intercept (1rst coef of vector b) set as as constant "-0.5"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
-  family = "bb", phi.formula = ~ seed, fixpar = list(c(1, 5), c(-0.5, 0)))
+  family = "bb", phi.formula = ~ seed, fixpar = list(c(1, 5), c(-0.5, 1e-15)))
 fm$param
 fm$varparam
+  
+### Model tests
+
+# LR tests - non-constant phi
+fm0 <- aodml(cbind(m, n - m) ~ 1, data = orob2, family = "bb")
+fm2 <- aodml(cbind(m, n - m) ~ seed + root, data = orob2, family = "bb")
+fm3 <- aodml(cbind(m, n - m) ~ seed * root, data = orob2, family = "bb")
+anova(fm0, fm1, fm2, fm3)
+
+# LR tests - constant phi
+# phi is assumed to be estimated from fm3
+fm2.bis <- aodml(cbind(m, n - m) ~ seed  + root, data = orob2, family = "bb",
+  fixpar = list(4, fm3$phi))
+LRstat <- 2 * (logLik(fm3) - logLik(fm2.bis))  
+pchisq(LRstat, df = 1, lower.tail = FALSE)  
+  
+# Wald test of the seed factor in fm1
+wald.test(b = coef(fm3), varb = vcov(fm3), Terms = 4)
 
 #------ Negative binomial model
 
-# Modelling counts
+### Modelling counts
+
 data(salmonella)
 fm1 <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb")
+#fm1 <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb", method = "Nelder-Mead")
 
 # summaries
 fm1
@@ -266,11 +281,6 @@ predict(fm1, type = "response", se.fit = TRUE)
 newdat <- data.frame(dose = c(20, 40))
 predict(fm1, type = "response", se.fit = TRUE, newdata = newdat)
 
-# deviance and chi2 tests of the "log(dose + 10) + dose" factors
-fm0 <- aodml(m ~ 1, data = salmonella, family = "nb")
-anova(fm0, fm1)
-wald.test(b = coef(fm1), varb = vcov(fm1), Terms = 2:3)
-
 # various phi scales
 fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb")
 fm$phi
@@ -282,30 +292,42 @@ fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb", phi.sca
 fm$phi
 fm$phi.scale
   
-# Modelling a rate
+# LR and Wald tests of the "log(dose + 10) + dose" factors
+fm0 <- aodml(m ~ 1, data = salmonella, family = "nb")
+anova(fm0, fm1)
+fm0.bis <- aodml(m ~ 1, data = salmonella, family = "nb",
+  fixpar = list(2, fm1$phi))
+LRstat <- 2 * (logLik(fm1) - logLik(fm0.bis))  
+pchisq(LRstat, df = 2, lower.tail = FALSE)  
+wald.test(b = coef(fm1), varb = vcov(fm1), Terms = 2:3)
+
+### Modelling a rate
+  
 data(dja)
 # rate "m / trisk"
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja, family = "nb")
 summary(fm)
 
-# Models with coefficient(s) set as constant
-
+fm <- aodml(formula = m ~ group + offset(log(trisk)),
+  phi.formula = ~ group, data = dja, family = "nb", phi.scale = "log")
+summary(fm)
+  
 # model with 1 phi coefficient, set as constant "0.8"
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
   family = "nb", phi.formula = ~1, fixpar = list(3, 0.8))
 fm$param
 fm$varparam
 
-# model with 2 phi coefficients, with the first set as constant "0"
+# model with 2 phi coefficients, with the first set as constant ~ "0" in the identity scale
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
-  family = "nb", phi.formula = ~ group, fixpar = list(3, 0))
+  family = "nb", phi.formula = ~ group, phi.scale = "log", fixpar = list(4, -15))
 fm$param
 fm$varparam
 
-# model with 2 phi coefficients, with the first set as constant "0",
+# model with 2 phi coefficients, with the first set as constant "0" in the identity scale,
 # and the mu intercept coefficient (1rst coef of vector b) set as as constant "-0.5"
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
-  family = "nb", phi.formula = ~ group, fixpar = list(c(1, 3), c(-0.5, 0)))
+  family = "nb", phi.formula = ~ group, phi.scale = "log", fixpar = list(c(1, 4), c(-0.5, -15)))
 fm$param
 fm$varparam
 

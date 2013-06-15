@@ -1,5 +1,6 @@
 drs <- function(formula, data, type = c("d", "rs"), C = NULL,	pooled = FALSE) {
-	call <- match.call()
+	
+  call <- match.call()
   type <- match.arg(type)
 	dat <- data
 	mf <- model.frame(formula = formula, data = dat)
@@ -85,4 +86,5 @@ drs <- function(formula, data, type = c("d", "rs"), C = NULL,	pooled = FALSE) {
   	list(call = call, type = type, tab = tab, rho = rho, X2 = X2, dat = dat),
   	class = "drs"
   	)
-  }
+  
+}

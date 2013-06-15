@@ -5,8 +5,8 @@ predict.aodml <- function(object, ..., type = c("link", "response"), se.fit = FA
   
 ##	dat <- object$dat                     ## not needed here  
 ##	phi.f <- object$phi.formula           ## not needed here
-##	modmatrix.b <- object$modmatrix.b     ## not needed here
-##	modmatrix.phi <- object$modmatrix.phi ## not needed here
+##	X.b <- object$X.b     ## not needed here
+##	X.phi <- object$X.phi ## not needed here
 
   ## old syntax: mu.f <- object$formula
   ## new syntax: get right-hand side fixed-effect formula
@@ -19,7 +19,7 @@ predict.aodml <- function(object, ..., type = c("link", "response"), se.fit = FA
   	offset <- model.offset(mf)
 	  }
   else {
-    X <- object$modmatrix.b
+    X <- object$X.b
     offset <- object$offset
   }
 	
@@ -52,6 +52,7 @@ predict.aodml <- function(object, ..., type = c("link", "response"), se.fit = FA
                   response = list(fit = mu, se.fit = se.mu),
                   link = list(fit = eta, se.fit = se.eta))
 	res
-	}
+
+}
 
 predict.aodql <- function(object, ...) predict(object$fm, ...)
