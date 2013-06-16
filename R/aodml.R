@@ -1,15 +1,10 @@
-aodml <- function(formula,
-  data,
-	family = c("bb", "nb"),
-  link = c("logit", "cloglog", "probit"), 
-	phi.formula = ~ 1,
-  phi.scale = c("identity", "log", "inverse"),
-  phi.start = NULL,
-  fixpar = list(),
-  hessian = TRUE,
-  method = c("BFGS", "Nelder-Mead", "CG", "SANN"),
-  control = list(maxit = 3000),
-  ...) {
+aodml <- function(formula, data, family = c("bb", "nb"),
+                  link = c("logit", "cloglog", "probit"), 
+                  phi.formula = ~ 1, 
+                  phi.scale = c("identity", "log", "inverse"),
+                  phi.start = NULL, fixpar = list(), hessian = TRUE,
+                  method = c("BFGS", "Nelder-Mead", "CG", "SANN"),
+                  control = list(maxit = 3000, trace = 0), ...) {
 	
   call <- match.call(expand.dots = FALSE)
 	fam <- match.arg(family)
@@ -18,24 +13,28 @@ aodml <- function(formula,
 
 	mu.f <- formula
 	phi.f <- phi.formula
-  if(phi.f != ~ 1) phi.f <- update.formula(phi.f, ~ . - 1)
+  if(phi.f != ~ 1)
+    phi.f <- update.formula(phi.f, ~ . - 1)
 
 	dat <- data
 	
 	mf <- model.frame(formula = mu.f, data = dat)
 	resp <- model.response(mf)
-	if(fam == "bb") {
+	
+  if(fam == "bb") {
   	link <- match.arg(link)
 		fam.glm <- eval(parse(text = paste("binomial(link =", link,")")))
 		m <- resp[, 1]
 		n <- rowSums(resp)
 		y <- m / n
-	}
+	  }
+  
 	if(fam == "nb") {
 		fam.glm <- "poisson"
 		link <- "log"
 		y <- as.vector(resp)
-	}
+	  }
+  
   offset <- model.offset(mf)
 	
 	# model matrices
@@ -57,15 +56,18 @@ aodml <- function(formula,
 		id.fix <- fixpar[[1]]
 		theta.fix <- fixpar[[2]]
 	  id.est <- id.par[-id.fix]
-	}
+	  }
 
 	# starting values of the parameters
   fm <- glm(formula = mu.f, family = fam.glm, data = dat)
-	if(is.null(phi.start)) {
+	
+  if(is.null(phi.start)) {
 		z <- 0.1
 		val <- switch(phi.scale, "identity" = z, "log" = log(z), "inverse" = 1 / z)
-	} else
+	  }
+  else
 		val <- phi.start
+  
   phi.start <- rep(val, nbphi)
 	param.start <- c(coef(fm), phi.start)
 
@@ -104,7 +106,7 @@ aodml <- function(formula,
 
 	# fit
   res <- optim(par = param.start[id.est], fn = m.logL, hessian = hessian, 
-    method = method, control = control, ...)
+               method = method, control = control, ...)
   
 	## Results
   
@@ -131,7 +133,7 @@ aodml <- function(formula,
 			varparam[id.est, id.est] <- qr.solve(H0)
 		else
 			warning("The hessian matrix was singular.\n")
-	}
+	  }
   dimnames(varparam)[[1]] <- dimnames(varparam)[[2]] <- names(param)
   
   # log-likelihood contributions
@@ -144,7 +146,7 @@ aodml <- function(formula,
   if(fam == "bb") {
     l <- dbetabin(m = m, n = n, mu = mu, k = k, log = TRUE)
     lmax <- dbetabin(m = m, n = n, mu = y, k = k, log = TRUE)
-  }
+    }
   
   if(fam == "nb") {
     l <- dnbinom(x = y, mu = mu, size = k, log = TRUE)
@@ -174,7 +176,6 @@ aodml <- function(formula,
   		nbpar = nbpar, df.model = df.model, df.residual = df.residual,
   		logL = logL, l = l, lmax = lmax,
   		iterations = iterations, code = code, msg = msg,
-      singular.hessian = singular.H0
-  		),
+      singular.hessian = singular.H0),
   	class = "aodml")
-}
+  }

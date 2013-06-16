@@ -20,8 +20,13 @@ print.summary.aodml <- function(x, ..., digits = max(3, getOption("digits") - 3)
   	List <- vector(mode = "list", length = 4)
   	for(i in 1:4){
       X <- BCoef[, i]
-      List[[i]] <- format(X, digits = digits, scientific = FALSE)
-  	}
+## Modif RL 16/06/2013
+##      List[[i]] <- format(X, digits = digits, scientific = FALSE)
+      List[[i]] <- sapply(X, function(x){
+        sci <- if(abs(x) < 10^(-4)) TRUE else FALSE
+        format(x, nsmall = 4, digits = digits, scientific = sci)
+        })
+  	  }
     BCoeftext <- as.data.frame(t(do.call("rbind", List)))
     rownames(BCoeftext) <- nam
     colnames(BCoeftext) <- c("Estimate", "Std. Error", "z value", "Pr(> |z|)")
@@ -44,7 +49,12 @@ print.summary.aodml <- function(x, ..., digits = max(3, getOption("digits") - 3)
     List <- vector(mode = "list", length = 2)
   	for(i in 1:2) {
   		X <- Phi[,i]
-  		List[[i]] <- format(X, digits = digits, scientific = FALSE)
+  		## Modif RL 16/06/2013
+  		##      List[[i]] <- format(X, digits = digits, scientific = FALSE)
+  		List[[i]] <- sapply(X, function(x){
+  		  sci <- if(abs(x) < 10^(-4)) TRUE else FALSE
+  		  format(x, nsmall = 4, digits = digits, scientific = sci)
+  		})
   	}
   	Phitext <- as.data.frame(t(do.call("rbind", List)))
   	rownames(Phitext) <- nam

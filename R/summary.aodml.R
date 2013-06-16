@@ -99,7 +99,8 @@ summary.aodml <- function(object, ...) {
 	# print coef set to a fixed value, if any
   pos4 <- setdiff(pos1, pos3)
   FixedPhi <- data.frame()
-  if(length(pos4) > 0) FixedPhi <- data.frame(Value = param[pos4])
+  if(length(pos4) > 0)
+    FixedPhi <- data.frame(Value = param[pos4])
 	
 	structure(
 		list(object = object, BCoef = BCoef, FixedBCoef = FixedBCoef,

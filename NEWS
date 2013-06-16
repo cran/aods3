@@ -1,0 +1,29 @@
+      =========================================================
+      CHANGES IN aods3 VERSION 0.4-1 (released on 16 June 2013)
+      =========================================================
+
+DOCUMENTATION
+
+    o Several help pages were sanitized for a better layout of their
+      pdf version.
+
+    o The help page for aodml was changed to reflect changes in the code
+
+      - component trace set to 0 in the list provided to "control".
+
+      - argument digits added to the print method for anova.aodml.
+
+CODE
+
+    o In aodml, in the list provided to control, "trace"" was set to 0
+      to avoid spurious warnings.
+
+    o In print.summary.aodml, display of fixed-effect model coefficients,
+      and associated se, z, and p values was changed for better reading
+      (scientific notation for absolute values < 10^-4).
+
+    o In print.summary.aodml, display of phi coefficients and associated se
+      was changed for better reading (scientific notation for absolute
+      values < 10^-4).
+
+    o A "digits" argument was added to the print method for anova.aodml.

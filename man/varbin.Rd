@@ -5,7 +5,11 @@
 
 \title{Estimate of a Probability from Clustered Binomial Data}
 
-\description{The function estimates a probability and its variance from clustered binomial data \{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)}\}, where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{successes} (proportions are \eqn{y = m/n}), and \eqn{N} the number of clusters. Confidence intervals are calculated using a normal approximation, which might be inappropriate when the probability is close to 0 or 1.}
+\description{The function estimates a probability and its variance from clustered binomial data
+
+\{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)}\},
+
+where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{successes} (proportions are \eqn{y = m/n}), and \eqn{N} the number of clusters. Confidence intervals are calculated using a normal approximation, which might be inappropriate when the probability is close to 0 or 1.}
 
 \usage{
   varbin(n, m, alpha = 0.05, R = 5000)
@@ -26,7 +30,10 @@
   Five methods are used for the estimations. Let us consider \eqn{N} clusters of sizes \eqn{n_1, \ldots, n_N} with observed count responses \eqn{m_1, \ldots, m_N}. We note \eqn{y_i = m_i/n_i (i = 1, \ldots, N)} the observed proportions. The underlying assumption is that the probability, say \eqn{mu}, is homogeneous across the clusters.
   
   \bold{Binomial method:} the probability estimate and its variance are calculated by
-  \eqn{\mu = (sum_{i} (m_i)) / (sum_{i} (n_i))} (ratio estimate) and \eqn{\mu * (1 - \mu) / (sum_{i} (n_i) - 1)}, respectively.
+  
+  \eqn{\mu = (sum_{i} (m_i)) / (sum_{i} (n_i))} (ratio estimate) and
+  
+  \eqn{\mu * (1 - \mu) / (sum_{i} (n_i) - 1)}, respectively.
   
   \bold{Ratio method:} the probability \eqn{\mu} is estimated as for the binomial method (ratio estimate). The one-stage cluster sampling formula is used to calculate the variance of \eqn{\mu} (see Cochran, 1999, p. 32 and p. 66).
   

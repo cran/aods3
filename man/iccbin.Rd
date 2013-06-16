@@ -6,7 +6,11 @@
 
 \title{Intra-Cluster Correlation for Clustered Binomial data}
 
-\description{The function estimates the intraclass correlation \eqn{\rho} from clustered binomial data \{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)}\}, where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{successes} (proportions are \eqn{y = m/n}), and \eqn{N} the number of clusters. The function uses a one-way random effect model. Three estimates, corresponding to methods referred to as \dQuote{A}, \dQuote{B} and \dQuote{C} in Goldstein et al. (2002), can be returned.}
+\description{The function estimates the intraclass correlation \eqn{\rho} from clustered binomial data:
+
+\{\eqn{(n_1, m_1), (n_2, m_2), ..., (n_N, m_N)}\},
+
+where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{successes} (proportions are \eqn{y = m/n}), and \eqn{N} the number of clusters. The function uses a one-way random effect model. Three estimates, corresponding to methods referred to as \dQuote{A}, \dQuote{B} and \dQuote{C} in Goldstein et al. (2002), can be returned.}
 
 \usage{
   iccbin(n, m, method = c("A", "B", "C"), nAGQ = 1, M = 1000)

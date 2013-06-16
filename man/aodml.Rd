@@ -36,13 +36,12 @@ For the NB model, data can be of two types. When modeling simple counts, data ha
   fixpar = list(),
   hessian = TRUE,
   method = c("BFGS", "Nelder-Mead", "CG", "SANN"),
-  control = list(maxit = 3000),
-  ...)
+  control = list(maxit = 3000, trace = 0), ...)
   
   \method{print}{aodml}(x, ...)
   \method{summary}{aodml}(object, ...)
   \method{anova}{aodml}(object, ...)
-  \method{print}{anova.aodml}(x, ...)
+  \method{print}{anova.aodml}(x, digits, ...)
   \method{fitted}{aodml}(object, ..., what = c("mu", "nu", "eta", "phi"))
   \method{residuals}{aodml}(object, ..., type = c("deviance", "pearson", "response"))
   \method{coef}{aodml}(object, ...)
@@ -56,7 +55,19 @@ For the NB model, data can be of two types. When modeling simple counts, data ha
 
 \arguments{
 
-  \item{formula}{A formula for the mean \eqn{\mu}, defining the parameter vector \eqn{b} (see details). For the BB model, the left-hand side of the formula must be of the form \code{cbind(m, n - m) ~ ...} where the fitted proportion is \code{m/n}. For the NB model, the left-hand side of the formula must be of the form \code{m ~ ...} where the fitted count is \code{m}. To fit a rate, argument \code{offset} must be used in the right-hand side of the formula (see examples).}
+  \item{formula}{A formula for the mean \eqn{\mu}, defining the parameter vector \eqn{b} (see details).
+  
+For the BB model, the left-hand side of the formula must be of the form 
+
+\code{cbind(m, n - m) ~ ...}
+
+where the fitted proportion is \code{m/n}.
+
+For the NB model, the left-hand side of the formula must be of the form 
+
+\code{m ~ ...}
+
+where the fitted count is \code{m}. To fit a rate, argument \code{offset} must be used in the right-hand side of the formula (see examples).}
   
   \item{data}{A data frame containing the response (\code{m} and, optionnally, \code{n}) and the explanatory variable(s).}
   
@@ -64,23 +75,36 @@ For the NB model, data can be of two types. When modeling simple counts, data ha
   
   \item{link}{For the BB model only. Define the link function \eqn{g} for the mean \eqn{\mu}: \dQuote{cloglog}, \dQuote{logit} (default) or \dQuote{probit}. For the NB model, \code{link} is automatically set to \dQuote{log}.}
   
-  \item{phi.formula}{A right-hand side formula to model optional heterogeneity for the over-dispersion parameter \eqn{\Phi} (see details). Only one single factor is allowed. Default to \code{formula(~ 1)} (i.e. no heterogeneity).}
+  \item{phi.formula}{A right-hand side formula to model optional heterogeneity for the over-dispersion parameter \eqn{\Phi} (see details). Only one single factor is allowed.
+  
+Default to \code{formula(~ 1)} (i.e. no heterogeneity).}
   
   \item{phi.scale}{Scale on which \eqn{\Phi} is estimated (see details): \dQuote{identity} (default), \dQuote{log} or \dQuote{inverse}.}
 
   \item{phi.start}{Optional starting values for \eqn{\Phi}. Default to 0.1.}
   
-  \item{fixpar}{An optional list of 2 vectors of same length (\eqn{>=1}) to set some parameters as constant in the model. The first vector indicates which parameters are set as constant (i.e., not optimized) in the global parameter vector \eqn{(b, \Phi)}. The second vector indicates the corresponding values. For instance, \code{fixpar = list(c(4, 5), c(0, 0.1))} means that the 4th and 5th components of vector \eqn{(b, \Phi)} are set to 0 and 0.1. Argument \code{fixpar} can be usefull, for instance, to calculate profiled log-likehoods.}
+  \item{fixpar}{An optional list of 2 vectors of same length (\eqn{>=1}) to set some parameters as constant in the model.
+  
+The first vector indicates which parameters are set as constant (i.e., not optimized) in the global parameter vector \eqn{(b, \Phi)}.
+
+The second vector indicates the corresponding values. For instance,
+
+\code{fixpar = list(c(4, 5), c(0, 0.1))}
+
+means that the 4th and 5th components of vector \eqn{(b, \Phi)} are set to 0 and 0.1. Argument \code{fixpar} can be usefull, for instance, to calculate profiled log-likehoods.}
 
   \item{hessian}{A logical (default to \code{TRUE}). If \code{FALSE}, the hessian and the variances-covariances matrices of the parameters are not calculated.}
 
   \item{method}{Define the method used for the optimization (see \code{\link{optim}}).}
   
-  \item{control}{A list to control the optimization parameters. See \code{\link{optim}}. By default, the maximum number of iterations is set to 10000.}
+  \item{control}{A list to control the optimization parameters. See \code{\link{optim}}. By default, the maximum number of iterations is set to 3000, and trace is set to 0 to avoid spurious warnings.}
   
   \item{object}{An object of class \code{aodml}}
 
   \item{x}{An object of class \code{aodml}}
+  
+  \item{digits}{Number of digits to print in print.summary.aodml and print.anova.aodml.
+                Default to \code{max(3, getOption("digits") - 3)}}
 
   \item{\dots}{Further arguments passed to \code{\link{optim}} (e.g. argument \code{method} if using function \code{aodml}), or further objects of class \code{aodml} (function \code{anova.aodml}), or further arguments passed to \code{print.aodml} and \code{print.anova.aodml}.}
   
@@ -146,7 +170,13 @@ The marginal (negative binomial) distribution \eqn{P(m|n)} is the same as for th
 
 \bold{Other details}\cr
 
-Argument \code{phi.scale} of function \code{aodml} enables to estimate the over-dispersion parameter under different scales. If \code{phi.scale = "identity"} (Default), the function estimates \eqn{\Phi}. If \code{phi.scale = "log"}, the function estimates \eqn{log(\Phi)}. If \code{phi.scale = "inverse"}, the function estimates \eqn{1/\Phi}.\cr
+Argument \code{phi.scale} of function \code{aodml} enables to estimate the over-dispersion parameter under different scales.
+
+If \code{phi.scale = "identity"} (Default), the function estimates \eqn{\Phi}. 
+
+If \code{phi.scale = "log"}, the function estimates \eqn{log(\Phi)}.
+
+If \code{phi.scale = "inverse"}, the function estimates \eqn{1/\Phi}.\cr
 
 The full parameter vector returned by \code{aodml}, say \code{param}, is equal to \eqn{(b, \Phi)}. This vector is estimated by maximizing the log-likelihood of the marginal model using function \code{optim}. The estimated variances-covariances matrix of \code{param} is calculated by the inverse of the observed hessian matrix returned by \code{optim}, and is referred to as \code{varparam}.
 
@@ -206,10 +236,12 @@ AIC(fm1, fm)
 fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb")
 fm$phi
 fm$phi.scale
-fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb", phi.scale = "log")
+fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb",
+            phi.scale = "log")
 fm$phi
 fm$phi.scale
-fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb", phi.scale = "inverse")
+fm <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb",
+            phi.scale = "inverse")
 fm$phi
 fm$phi.scale
 
@@ -230,7 +262,8 @@ fm$varparam
 # model with 2 phi coefficients, with the first set as constant ~ "0",
 # and the mu intercept (1rst coef of vector b) set as as constant "-0.5"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
-  family = "bb", phi.formula = ~ seed, fixpar = list(c(1, 5), c(-0.5, 1e-15)))
+            family = "bb", phi.formula = ~ seed,
+            fixpar = list(c(1, 5), c(-0.5, 1e-15)))
 fm$param
 fm$varparam
   
@@ -244,8 +277,8 @@ anova(fm0, fm1, fm2, fm3)
 
 # LR tests - constant phi
 # phi is assumed to be estimated from fm3
-fm2.bis <- aodml(cbind(m, n - m) ~ seed  + root, data = orob2, family = "bb",
-  fixpar = list(4, fm3$phi))
+fm2.bis <- aodml(cbind(m, n - m) ~ seed  + root, data = orob2,
+                 family = "bb", fixpar = list(4, fm3$phi))
 LRstat <- 2 * (logLik(fm3) - logLik(fm2.bis))  
 pchisq(LRstat, df = 1, lower.tail = FALSE)  
   
@@ -258,7 +291,8 @@ wald.test(b = coef(fm3), varb = vcov(fm3), Terms = 4)
 
 data(salmonella)
 fm1 <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb")
-#fm1 <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb", method = "Nelder-Mead")
+## fm1 <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb",
+##              method = "Nelder-Mead")
 
 # summaries
 fm1
@@ -285,10 +319,12 @@ predict(fm1, type = "response", se.fit = TRUE, newdata = newdat)
 fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb")
 fm$phi
 fm$phi.scale
-fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb", phi.scale = "log")
+fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella,
+            family = "nb", phi.scale = "log")
 fm$phi
 fm$phi.scale
-fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella, family = "nb", phi.scale = "inverse")
+fm <- aodml(m ~ log(dose + 10) + dose, data = salmonella,
+            family = "nb", phi.scale = "inverse")
 fm$phi
 fm$phi.scale
   
@@ -296,7 +332,7 @@ fm$phi.scale
 fm0 <- aodml(m ~ 1, data = salmonella, family = "nb")
 anova(fm0, fm1)
 fm0.bis <- aodml(m ~ 1, data = salmonella, family = "nb",
-  fixpar = list(2, fm1$phi))
+                 fixpar = list(2, fm1$phi))
 LRstat <- 2 * (logLik(fm1) - logLik(fm0.bis))  
 pchisq(LRstat, df = 2, lower.tail = FALSE)  
 wald.test(b = coef(fm1), varb = vcov(fm1), Terms = 2:3)
@@ -305,32 +341,35 @@ wald.test(b = coef(fm1), varb = vcov(fm1), Terms = 2:3)
   
 data(dja)
 # rate "m / trisk"
-fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja, family = "nb")
+fm <- aodml(formula = m ~ group + offset(log(trisk)),
+            data = dja, family = "nb")
 summary(fm)
 
 fm <- aodml(formula = m ~ group + offset(log(trisk)),
-  phi.formula = ~ group, data = dja, family = "nb", phi.scale = "log")
+            phi.formula = ~ group, data = dja, family = "nb",
+            phi.scale = "log")
 summary(fm)
   
 # model with 1 phi coefficient, set as constant "0.8"
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
-  family = "nb", phi.formula = ~1, fixpar = list(3, 0.8))
+            family = "nb", phi.formula = ~1, fixpar = list(3, 0.8))
 fm$param
 fm$varparam
 
 # model with 2 phi coefficients, with the first set as constant ~ "0" in the identity scale
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
-  family = "nb", phi.formula = ~ group, phi.scale = "log", fixpar = list(4, -15))
+            family = "nb", phi.formula = ~ group, phi.scale = "log",
+            fixpar = list(4, -15))
 fm$param
 fm$varparam
 
 # model with 2 phi coefficients, with the first set as constant "0" in the identity scale,
 # and the mu intercept coefficient (1rst coef of vector b) set as as constant "-0.5"
 fm <- aodml(formula = m ~ group + offset(log(trisk)), data = dja,
-  family = "nb", phi.formula = ~ group, phi.scale = "log", fixpar = list(c(1, 4), c(-0.5, -15)))
+  family = "nb", phi.formula = ~ group, phi.scale = "log",
+  fixpar = list(c(1, 4), c(-0.5, -15)))
 fm$param
 fm$varparam
-
 }
 
 \keyword{regression}
