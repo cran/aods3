@@ -26,10 +26,10 @@ function(n, m, alpha = 0.05, R = 5000){
   varmujack <- var(pseudovalue) / N
   
   # bootstrap
-  if(!require(boot, quietly = TRUE))
-    stop("This function requires the recommended package dQuote(boot).")
+  ## if(!require(boot, quietly = TRUE))
+  ##   stop("This function requires the recommended package dQuote(boot).")
   foo <- function(d, f) mu <- sum(d$m * f) / sum(d$n * f)
-  res <- boot(data = dat, statistic = foo, stype = "w", R = R)
+  res <- boot::boot(data = dat, statistic = foo, stype = "w", R = R)
   muboot <- mean(res$t)
   varmuboot <- var(res$t)
   

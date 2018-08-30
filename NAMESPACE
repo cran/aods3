@@ -1,1 +1,39 @@
 exportPattern("^[[:alpha:]]+")
+
+importFrom("stats", "AIC", "anova", "binomial", "coef", "deviance",
+           "df.residual", "dnbinom", "dnorm", "fitted", "glm", "lm",
+           "logLik", "model.frame", "model.matrix", "model.offset",
+           "model.response", "optim", "pchisq", "pf", "plogis",
+           "pnorm", "predict", "qlogis", "qnorm", "residuals", "rnorm",
+           "terms", "update.formula", "var", "vcov")
+
+S3method(AIC, aodml)
+S3method(anova, aodml)
+S3method(anova, aodql)
+S3method(coef, aodml)
+S3method(coef, aodql)
+S3method(deviance, aodml)
+S3method(deviance, aodql)
+S3method(df.residual, aodml)
+S3method(df.residual, aodql)
+S3method(fitted, aodml)
+S3method(fitted, aodql)
+S3method(logLik, aodml)
+S3method(logLik, aodql)
+S3method(predict, aodml)
+S3method(predict, aodql)
+S3method(print, anova.aodml)
+S3method(print, aodml)
+S3method(print, aodql)
+S3method(print, drs)
+S3method(print, gof)
+S3method(print, iccbin)
+S3method(print, summary.aodml)
+S3method(print, varbin)
+S3method(print, wald.test)
+S3method(residuals, aodml)
+S3method(residuals, aodql)
+S3method(summary, aodml)
+S3method(summary, aodql)
+S3method(vcov, aodml)
+S3method(vcov, aodql)
