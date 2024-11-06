@@ -203,7 +203,9 @@ The full parameter vector returned by \code{aodml}, say \code{param}, is equal t
 #------ Beta-binomial model
 
 data(orob2)
+
 fm1 <- aodml(cbind(m, n - m) ~ seed, data = orob2, family = "bb")
+names(fm1)
 
 # summaries
 fm1
@@ -255,7 +257,7 @@ fm$varparam
 
 # model with 2 phi coefficients, with the first set as constant ~ "0"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
-  family = "bb", phi.formula = ~ seed, fixpar = list(5, 1e-15))
+  family = "bb", phi.formula = ~ seed, fixpar = list(5, 1e-8))
 fm$param
 fm$varparam
 
@@ -263,7 +265,7 @@ fm$varparam
 # and the mu intercept (1rst coef of vector b) set as as constant "-0.5"
 fm <- aodml(formula = cbind(m, n - m) ~ seed * root, data = orob2,
             family = "bb", phi.formula = ~ seed,
-            fixpar = list(c(1, 5), c(-0.5, 1e-15)))
+            fixpar = list(c(1, 5), c(-0.5, 1e-8)))
 fm$param
 fm$varparam
   

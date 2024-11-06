@@ -20,7 +20,7 @@ where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{
 
 \arguments{
   \item{n}{A vector of the sizes of the clusters.}
-  \item{m}{A vector of the numbers of successes (proportions are eqn{y = m / n}).}
+  \item{m}{A vector of the numbers of successes (proportions are \eqn{y = m / n}).}
   \item{method}{A character (\dQuote{A}, \dQuote{B} or \dQuote{C}) defining the calculation method. See Details.}
   \item{nAGQ}{Same as in function \code{glmer} of package \pkg{lme4}. Only for methods \dQuote{A} and \dQuote{B}. Default to 1.}
   \item{M}{Number of Monte Carlo (MC) replicates used in method \dQuote{B}. Default to 1000.}

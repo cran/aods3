@@ -19,7 +19,7 @@ where \eqn{n_i} is the size of cluster \eqn{i}, \eqn{m_i} the number of \dQuote{
 
 \arguments{
   \item{n}{A vector of the sizes of the clusters.}
-  \item{m}{A vector of the numbers of successes (proportions are eqn{y = m / n}).}
+  \item{m}{A vector of the numbers of successes (proportions are \eqn{y = m / n}).}
   \item{alpha}{The significance level for the confidence intervals. Default to 0.05, providing 95\% CI's.}
   \item{R}{The number of bootstrap replicates to compute bootstrap mean and variance. Default to 5000.}
   \item{x}{An object of class \dQuote{varbin}.}

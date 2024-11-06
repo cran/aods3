@@ -1,4 +1,4 @@
-print.aodql <- function(x, ...){
+print.aodql <- function(x, ...) {
   res <- list(model = x$fm,
               method = x$method,
               phi = x$phi,
@@ -7,4 +7,4 @@ print.aodql <- function(x, ...){
               nbiter = x$nbiter)
   print(res, ...)
   invisible(res)
-  }
+}

@@ -29,7 +29,7 @@ Function \code{gof} calculates the deviance \eqn{D} and the Pearson chi-squared 
 
   \deqn{X^2 = \sum_{i}( (y_i - \mu)^2/Var[y_i] )}
 
-Assuming that the data length is \eqn{N} and the number of the parameters in the model is \eqn{p}, eqn{D} and eqn{X^2} are compared to a chi-squared distribution with \eqn{N-p} degrees of freedom.
+Assuming that the data length is \eqn{N} and the number of the parameters in the model is \eqn{p}, \eqn{D} and \eqn{X^2} are compared to a chi-squared distribution with \eqn{N-p} degrees of freedom.
 
 }
 
